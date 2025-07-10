@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+.landing{
+    background-image: url('https://images.unsplash.com/photo-1603052875870-2f1b8c3d4e5a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80');
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 5px;
+}
+.landing h1 {
+    font-size: 40px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+.landing p {
+    font-size: 20px;
+    text-shadow: 1px 1px 3px rgba(0, 0    , 0, 0.5);
+  }
+  .button {
+    padding: 10px 20px;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+/* src/components/AuthLayout.css */
+
+.auth-layout__container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.auth-layout__card {
+  padding: 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 450px;
+  text-align: center; 
+}
+
+.auth-layout__title {
+  font-size: 2em;
+  color: #333;
+  margin-bottom: 30px;
+  font-weight: bold;
+}

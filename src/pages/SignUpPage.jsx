@@ -16,7 +16,9 @@ function SignupPage() {
     email: "",
     password: "",
     confirmPassword: "",
+    role: "user",
   });
+  
 
 
   const [errors, setErrors] = useState({});
@@ -82,18 +84,16 @@ function SignupPage() {
     setIsLoading(true); 
 
     try {
-      const res = await fetch(
-        "http://localhost:5000/api/user/signup",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            fullName: formData.fullName,
-            email: formData.email,
-            password: formData.password,
-          }),
-        }
-      );
+      const res = await fetch("http://localhost:5050/api/user/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role,
+        }),
+      });
 
       const data = await res.json();
 
@@ -138,7 +138,7 @@ function SignupPage() {
         )}
         <input
           type="email"
-          name="email" 
+          name="email"
           placeholder="Email"
           value={formData.email}
           onChange={handleChange}
@@ -153,7 +153,7 @@ function SignupPage() {
         <div className="relative">
           <input
             type={showPassword ? "text" : "password"}
-            name="password" 
+            name="password"
             placeholder="Password"
             value={formData.password}
             onChange={handleChange}
@@ -174,7 +174,7 @@ function SignupPage() {
         <div className="relative">
           <input
             type={showConfirmPassword ? "text" : "password"}
-            name="confirmPassword" 
+            name="confirmPassword"
             placeholder="Confirm Password"
             value={formData.confirmPassword}
             onChange={handleChange}
@@ -192,10 +192,21 @@ function SignupPage() {
             {errors.confirmPassword}
           </p>
         )}
+        <label className="font-semibold text-gray-700">I am a:</label>
+        <select
+          name="role"
+          value={formData.role}
+          onChange={handleChange}
+          className="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="user">Customer</option>
+          <option value="baker">Baker</option>
+        </select>
+
         <Button
           content={isLoading ? "Signing Up..." : "Sign Up"}
           type="submit"
-          isLoading={isLoading} 
+          isLoading={isLoading}
           className="bg-[#006d77] hover:bg-[#395c5f] text-white font-semibold mt-2"
         />
       </form>

@@ -4,8 +4,8 @@ import AppRoutes from "./routes/AppRoutes";
 import { Suspense } from "react";
 import FallBackLoader from "./Components/FallBackLoader";
 // import { AuthProvider } from "./context/AuthContext";
-// // import { ToastContainer } from "react-toastify";
-// import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (
@@ -15,7 +15,7 @@ function App() {
           <Suspense fallback={<FallBackLoader />}>
           <AppRoutes />
           </Suspense>
-          {/* <ToastContainer /> */}
+          <ToastContainer position="top-center" autoClose={5000} />
         </Router>
       {/* </AuthProvider> */}
     </>

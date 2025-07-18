@@ -1,19 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AuthLayout from "../Layouts/AuthLayout";
 import Button from "../Components/Button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState("");
+  const [showResend, setShowResend] = useState(false);
+
+  useEffect(() => {
+    const query = new URLSearchParams(location.search);
+    if (query.get("verified") === "true") {
+      toast.success("✅ Email verified! You can now log in.");
+    }
+  }, [location.search]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -24,15 +31,10 @@ function LoginPage() {
     const newErrors = {};
     const { email, password } = formData;
 
-    if (!email.trim()) {
-      newErrors.email = "Email is required.";
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Email address is invalid.";
-    }
+    if (!email.trim()) newErrors.email = "Email is required.";
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Email is invalid.";
 
-    if (!password.trim()) {
-      newErrors.password = "Password is required.";
-    }
+    if (!password.trim()) newErrors.password = "Password is required.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -45,45 +47,89 @@ function LoginPage() {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setSubmitError("");
+    setShowResend(false);
 
     if (!validateForm()) return;
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5050/api/user/signin", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/user/signin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
+        body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
-
+      // const data = await res.json();
+      
+    let data;
+    try {
+      data = await res.json();
+    } catch (err) {
+      console.error("Failed to parse response JSON:", err);
+      throw new Error("Invalid response from server.");
+    }
+    console.log("Login response:", data);
+    
       if (res.ok) {
-        console.log("Login successful:", data);
+        toast.success("Login successful!");
         navigate("/dashboard");
       } else {
-        console.error("Login failed:", data);
-        setSubmitError(data.message || "Login failed. Please try again.");
+        if (res.status === 403) {
+          const msg = data.message?.toLowerCase() || "";
+          if (msg.includes("verify")) {
+            setSubmitError("You need to verify your email before logging in.");
+            setShowResend(true);
+          } else if (msg.includes("approval")) {
+            setSubmitError("Your account is pending admin approval.");
+          } else {
+            setSubmitError(data.message || "Access denied.");
+          }
+        } else {
+          setSubmitError(data.message || "Login failed. Try again.");
+        }
       }
     } catch (err) {
-      console.error("Network or unexpected error:", err);
-      setSubmitError("Something went wrong. Please try again.");
+      console.error("Login error:", err);
+      setSubmitError("Network error. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const resendVerification = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/user/resend-verification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      toast.success("Verification email resent!");
+    } catch (error) {
+      console.error("Resend failed:", error.message);
+      toast.error(error.message || "Something went wrong");
+    }
+  };
+
   return (
     <AuthLayout title="Welcome Back">
-      <form
-        onSubmit={handleLoginSubmit}
-        className="flex flex-col gap-4 bg-[transparent]"
-      >
+      <form onSubmit={handleLoginSubmit} className="flex flex-col gap-4 bg-transparent">
         {submitError && (
-          <p className="text-red-600 font-semibold mb-3">{submitError}</p>
+          <div className="text-red-600 font-semibold mb-2">
+            <p>{submitError}</p>
+            {showResend && (
+              <button
+                type="button"
+                onClick={resendVerification}
+                className="text-blue-600 underline text-sm mt-1"
+              >
+                Resend verification email
+              </button>
+            )}
+          </div>
         )}
 
         <input
@@ -95,9 +141,7 @@ function LoginPage() {
           className="p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         {errors.email && (
-          <p className="text-red-500 font-semibold text-sm -mt-3">
-            {errors.email}
-          </p>
+          <p className="text-red-500 font-semibold text-sm -mt-3">{errors.email}</p>
         )}
 
         <div className="relative">
@@ -117,9 +161,7 @@ function LoginPage() {
           />
         </div>
         {errors.password && (
-          <p className="text-red-500 font-semibold text-sm -mt-3">
-            {errors.password}
-          </p>
+          <p className="text-red-500 font-semibold text-sm -mt-3">{errors.password}</p>
         )}
 
         <Button
